@@ -52,6 +52,20 @@ public class AuthController : ControllerBase
         }
     }
 
+    [HttpPost("verify/{oobCode}")]
+    public async Task<IActionResult> VerifyEmail(string oobCode)
+    {
+        try
+        {
+            var res = await _firebaseManager.VerifyEmail(oobCode);
+            return Ok(res);
+        }
+        catch (Exception ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+    }
+
     [HttpGet("protected")]
     public IActionResult ProtectedEndpoint()
     {

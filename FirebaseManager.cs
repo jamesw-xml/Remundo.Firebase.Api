@@ -90,7 +90,7 @@ public class FirebaseManager
         return JsonConvert.DeserializeObject<RefreshTokenResponse>(json);
     }
 
-    public async Task<LoginResponse?> CreateUserWithEmailAndPasswordAsync(LoginRequest req)
+    public async Task<LoginResponse?> CreateUserWithEmailAndPasswordAsync(SignupRequest req)
     {
         var endpoint = $"{_baseApiUrl}accounts:signUp?key={_apiKey}";
 
@@ -118,6 +118,29 @@ public class FirebaseManager
             user.DisplayName,
             expiry
         );
+    }
+
+    public async Task<bool> VerifyEmail(string oobCode)
+    {
+        var endpoint = $"{_baseApiUrl}accounts:update?key={_apiKey}";
+
+        var payload = new
+        {
+            oobCode
+        };
+
+        var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+        var res = await _httpClient.PostAsync(endpoint, content);
+
+        var msg = await res.Content.ReadAsStringAsync();
+
+        if (res.IsSuccessStatusCode)
+        {
+            return true; // action code applied successfully
+        }
+
+        // Optional: throw or log detailed error from Firebase
+        throw new Exception($"Failed to apply action code: {msg}");
     }
 
     private void CreateApp(FirebaseConnection connectionSetting)
