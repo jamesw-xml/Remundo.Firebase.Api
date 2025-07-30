@@ -90,6 +90,36 @@ public class FirebaseManager
         return JsonConvert.DeserializeObject<RefreshTokenResponse>(json);
     }
 
+    public async Task<LoginResponse?> CreateUserWithEmailAndPasswordAsync(LoginRequest req)
+    {
+        var endpoint = $"{_baseApiUrl}accounts:signUp?key={_apiKey}";
+
+        var content = new StringContent(JsonConvert.SerializeObject(req), Encoding.UTF8, "application/json");
+        var res = await _httpClient.PostAsync(endpoint, content);
+
+        var msg = await res.Content.ReadAsStringAsync();
+        if (!res.IsSuccessStatusCode)
+        {
+            throw new Exception(msg);
+        }
+
+        var authRes = JsonConvert.DeserializeObject<FirebaseAuthResponse>(msg);
+        var lookup = await LookupUserAsync(authRes.IdToken);
+        var user = lookup.Users.First();
+
+        var expiry = Helpers.GetTokenExpiry(authRes.IdToken);
+
+        return new LoginResponse(
+            user.Email,
+            user.LocalId,
+            authRes.IdToken,
+            authRes.RefreshToken,
+            user.EmailVerified,
+            user.DisplayName,
+            expiry
+        );
+    }
+
     private void CreateApp(FirebaseConnection connectionSetting)
     {
         var connJson = JsonConvert.SerializeObject(connectionSetting);

@@ -38,6 +38,20 @@ public class AuthController : ControllerBase
         }
     }
 
+    [HttpPost("signup")]
+    public async Task<IActionResult> Signup([FromBody] SignupRequest req)
+    {
+        try
+        {
+            var res = await _firebaseManager.CreateUserWithEmailAndPasswordAsync(req);
+            return Ok(res);
+        }
+        catch (Exception ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+    }
+
     [HttpGet("protected")]
     public IActionResult ProtectedEndpoint()
     {
